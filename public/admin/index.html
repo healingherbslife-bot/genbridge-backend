@@ -825,7 +825,7 @@ tbody tr:last-child td{border-bottom:none}
 // ══════════════════════════════════════════════════════════
 // CONFIG
 // ══════════════════════════════════════════════════════════
-const API = (window.API_URL || 'http://localhost:5000') + '/api';
+const API = (window.API_URL || window.location.origin) + '/api';
 let TOKEN = localStorage.getItem('gb_token');
 let CURRENT_USER = null;
 let ALL_WORKSHOPS = [];
