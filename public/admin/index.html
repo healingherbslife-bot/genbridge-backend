@@ -1,0 +1,1487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>GenBridge Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Tokens ── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --navy:#1B3A6B;--navy-d:#0F2347;--teal:#0D7377;--teal-l:#14A7AD;
+  --gold:#C8962E;--gold-l:#E8B84B;--cream:#F7F4EF;--sand:#EDE8DF;
+  --white:#FFF;--ink:#1A1A2E;--mid:#4A5568;--soft:#8896A8;
+  --border:#E2E8F0;--green:#1B6B3A;--red:#C0531A;--purple:#5B2D8E;
+  --sidebar-w:240px;
+  --font-d:'Playfair Display',serif;--font-b:'DM Sans',sans-serif;--font-m:'DM Mono',monospace;
+  --ease:cubic-bezier(0.16,1,0.3,1);--ease-s:cubic-bezier(0.25,0.46,0.45,0.94);
+  --sh-sm:0 1px 3px rgba(0,0,0,.06),0 1px 2px rgba(0,0,0,.04);
+  --sh-md:0 4px 16px rgba(27,58,107,.08);
+  --sh-lg:0 16px 40px rgba(27,58,107,.12);
+}
+html,body{height:100%;overflow:hidden;font-family:var(--font-b);background:var(--cream);color:var(--ink);font-size:15px;-webkit-font-smoothing:antialiased}
+h1,h2,h3,h4{font-family:var(--font-d);line-height:1.2}
+button{cursor:pointer;border:none;background:none;font-family:inherit}
+input,select,textarea{font-family:inherit}
+a{color:inherit;text-decoration:none}
+
+/* ── Layout ── */
+#app{display:flex;height:100vh;overflow:hidden}
+
+/* ── Sidebar ── */
+.sidebar{
+  width:var(--sidebar-w);flex-shrink:0;
+  background:var(--navy-d);
+  display:flex;flex-direction:column;
+  overflow:hidden;
+  transition:width .3s var(--ease);
+  position:relative;z-index:10;
+}
+.sidebar__logo{
+  padding:1.5rem 1.25rem 1.25rem;
+  border-bottom:1px solid rgba(255,255,255,.06);
+  display:flex;align-items:center;gap:.75rem;
+}
+.sidebar__logo-mark{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-weight:900;font-size:1.1rem;color:var(--gold);
+  flex-shrink:0;
+}
+.sidebar__logo-text{font-family:var(--font-d);font-weight:700;font-size:1.1rem;color:#fff;letter-spacing:-.3px}
+.sidebar__logo-sub{font-size:.7rem;color:rgba(255,255,255,.4);margin-top:1px;font-family:var(--font-m)}
+
+.sidebar__nav{flex:1;overflow-y:auto;padding:.75rem 0}
+.nav-section{padding:.4rem 1rem .15rem;font-size:.65rem;font-family:var(--font-m);color:rgba(255,255,255,.3);letter-spacing:.1em;text-transform:uppercase;margin-top:.5rem}
+.nav-item{
+  display:flex;align-items:center;gap:.7rem;
+  padding:.65rem 1.25rem;margin:.1rem .5rem;
+  border-radius:10px;cursor:pointer;
+  color:rgba(255,255,255,.55);font-size:.88rem;font-weight:500;
+  transition:all .2s var(--ease-s);
+  position:relative;
+}
+.nav-item:hover{background:rgba(255,255,255,.06);color:rgba(255,255,255,.85)}
+.nav-item.active{background:rgba(13,115,119,.2);color:var(--teal-l)}
+.nav-item.active::before{content:'';position:absolute;left:0;top:20%;bottom:20%;width:3px;background:var(--teal-l);border-radius:0 3px 3px 0}
+.nav-item__icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+.nav-item__badge{margin-left:auto;background:var(--red);color:#fff;font-size:.65rem;font-family:var(--font-m);padding:.1rem .45rem;border-radius:50px;font-weight:600}
+
+.sidebar__footer{padding:1rem;border-top:1px solid rgba(255,255,255,.06)}
+.sidebar__user{display:flex;align-items:center;gap:.65rem;padding:.6rem .75rem;border-radius:10px;background:rgba(255,255,255,.04)}
+.sidebar__avatar{width:32px;height:32px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:.85rem;font-weight:600;color:#fff;flex-shrink:0}
+.sidebar__user-info .name{font-size:.82rem;font-weight:600;color:#fff}
+.sidebar__user-info .role{font-size:.68rem;color:rgba(255,255,255,.4);text-transform:capitalize;font-family:var(--font-m)}
+.sidebar__logout{margin-left:auto;color:rgba(255,255,255,.3);font-size:.9rem;transition:color .2s;background:none;border:none;cursor:pointer;padding:.25rem}
+.sidebar__logout:hover{color:var(--red)}
+
+/* ── Main ── */
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;background:var(--cream)}
+.topbar{
+  height:60px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-between;
+  padding:0 1.75rem;
+  background:var(--white);border-bottom:1px solid var(--border);
+  box-shadow:var(--sh-sm);
+}
+.topbar__left{display:flex;align-items:center;gap:1rem}
+.topbar__title{font-family:var(--font-d);font-size:1.2rem;font-weight:700;color:var(--navy)}
+.topbar__breadcrumb{font-size:.78rem;color:var(--soft);font-family:var(--font-m)}
+.topbar__actions{display:flex;align-items:center;gap:.75rem}
+
+.content{flex:1;overflow-y:auto;padding:1.75rem}
+
+/* ── View pages ── */
+.view{display:none;animation:fadeIn .3s var(--ease)}
+.view.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Login ── */
+#login-screen{
+  position:fixed;inset:0;z-index:1000;
+  display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(135deg,var(--navy-d) 0%,var(--navy) 50%,var(--teal) 100%);
+}
+.login-card{
+  background:var(--white);border-radius:20px;
+  padding:3rem;width:100%;max-width:400px;
+  box-shadow:var(--sh-lg);
+}
+.login-card__logo{text-align:center;margin-bottom:2rem}
+.login-card__logo-mark{
+  width:60px;height:60px;border-radius:15px;
+  background:var(--navy);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-weight:900;font-size:1.75rem;color:var(--gold);
+  margin:0 auto 1rem;
+}
+.login-card h2{font-size:1.5rem;color:var(--navy);margin-bottom:.25rem}
+.login-card p{font-size:.88rem;color:var(--soft);margin-bottom:2rem}
+.form-group{margin-bottom:1.25rem}
+.form-group label{display:block;font-size:.8rem;font-weight:600;color:var(--navy);margin-bottom:.4rem}
+.form-group input,.form-group select,.form-group textarea{
+  width:100%;padding:.75rem 1rem;
+  border:1.5px solid var(--border);border-radius:10px;
+  font-size:.9rem;color:var(--ink);background:var(--cream);
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.form-group input:focus,.form-group select:focus,.form-group textarea:focus{
+  border-color:var(--teal);background:var(--white);
+  box-shadow:0 0 0 3px rgba(13,115,119,.1);
+}
+.form-group textarea{resize:vertical;min-height:90px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.login-error{background:rgba(192,83,26,.1);border:1px solid rgba(192,83,26,.3);color:var(--red);padding:.7rem 1rem;border-radius:8px;font-size:.85rem;margin-bottom:1rem;display:none}
+
+/* ── Buttons ── */
+.btn{
+  display:inline-flex;align-items:center;gap:.4rem;
+  padding:.6rem 1.2rem;border-radius:50px;
+  font-size:.85rem;font-weight:600;font-family:var(--font-b);
+  transition:all .25s var(--ease);cursor:pointer;
+}
+.btn--primary{background:var(--navy);color:#fff;box-shadow:0 2px 8px rgba(27,58,107,.2)}
+.btn--primary:hover{background:var(--navy-d);transform:translateY(-1px);box-shadow:var(--sh-md)}
+.btn--teal{background:var(--teal);color:#fff}
+.btn--teal:hover{background:var(--teal-l);transform:translateY(-1px)}
+.btn--gold{background:var(--gold);color:#fff}
+.btn--gold:hover{background:var(--gold-l);transform:translateY(-1px)}
+.btn--outline{background:transparent;color:var(--navy);border:1.5px solid var(--border)}
+.btn--outline:hover{background:var(--cream);border-color:var(--navy)}
+.btn--sm{padding:.4rem .9rem;font-size:.8rem}
+.btn--danger{background:rgba(192,83,26,.1);color:var(--red);border:1px solid rgba(192,83,26,.2)}
+.btn--danger:hover{background:var(--red);color:#fff}
+.btn--full{width:100%;justify-content:center;padding:.85rem;border-radius:10px;font-size:.95rem}
+.btn--icon{width:34px;height:34px;padding:0;border-radius:8px;justify-content:center}
+
+/* ── Cards ── */
+.card{background:var(--white);border-radius:16px;border:1px solid var(--border);box-shadow:var(--sh-sm)}
+.card__header{padding:1.25rem 1.5rem;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between}
+.card__title{font-family:var(--font-d);font-size:1rem;font-weight:700;color:var(--navy)}
+.card__body{padding:1.5rem}
+
+/* ── KPI Grid ── */
+.kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:1.5rem}
+.kpi-card{
+  background:var(--white);border-radius:16px;padding:1.25rem 1.5rem;
+  border:1px solid var(--border);box-shadow:var(--sh-sm);
+  display:flex;align-items:flex-start;gap:1rem;
+  transition:transform .3s var(--ease),box-shadow .3s;
+}
+.kpi-card:hover{transform:translateY(-2px);box-shadow:var(--sh-md)}
+.kpi-icon{
+  width:44px;height:44px;border-radius:12px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:1.2rem;
+}
+.kpi-card__body .label{font-size:.75rem;color:var(--soft);font-weight:500;margin-bottom:.3rem}
+.kpi-card__body .value{font-family:var(--font-d);font-size:1.75rem;font-weight:900;color:var(--navy);line-height:1}
+.kpi-card__body .sub{font-size:.72rem;color:var(--soft);margin-top:.3rem;font-family:var(--font-m)}
+.kpi-card__body .sub.up{color:var(--green)}
+.kpi-card__body .sub.down{color:var(--red)}
+
+/* ── Dashboard grid ── */
+.dash-grid{display:grid;grid-template-columns:1fr 380px;gap:1.25rem}
+.dash-col{display:flex;flex-direction:column;gap:1.25rem}
+
+/* ── Chart (pure CSS bar chart) ── */
+.bar-chart{padding:1rem 0}
+.bar-row{display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem}
+.bar-label{font-size:.75rem;color:var(--mid);font-family:var(--font-m);width:65px;text-align:right;flex-shrink:0}
+.bar-track{flex:1;background:var(--cream);border-radius:4px;height:20px;overflow:hidden}
+.bar-fill{height:100%;border-radius:4px;transition:width 1s var(--ease);background:var(--teal)}
+.bar-val{font-size:.75rem;font-weight:600;color:var(--navy);width:80px;text-align:right;flex-shrink:0;font-family:var(--font-m)}
+
+/* ── Tables ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+thead th{font-size:.72rem;font-weight:600;color:var(--soft);text-transform:uppercase;letter-spacing:.06em;padding:.75rem 1rem;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--cream)}
+tbody td{padding:.75rem 1rem;font-size:.85rem;color:var(--ink);border-bottom:1px solid var(--border);vertical-align:middle}
+tbody tr:hover td{background:rgba(13,115,119,.03)}
+tbody tr:last-child td{border-bottom:none}
+
+/* ── Badges / Pills ── */
+.badge{display:inline-flex;align-items:center;gap:.3rem;padding:.2rem .65rem;border-radius:50px;font-size:.72rem;font-weight:600;font-family:var(--font-m)}
+.badge--green{background:rgba(27,107,58,.1);color:var(--green)}
+.badge--red{background:rgba(192,83,26,.1);color:var(--red)}
+.badge--gold{background:rgba(200,150,46,.1);color:var(--gold)}
+.badge--blue{background:rgba(27,58,107,.1);color:var(--navy)}
+.badge--teal{background:rgba(13,115,119,.1);color:var(--teal)}
+.badge--gray{background:var(--sand);color:var(--mid)}
+.badge::before{content:'';width:6px;height:6px;border-radius:50%;background:currentColor;flex-shrink:0}
+
+/* ── Tag ── */
+.prog-tag{display:inline-block;padding:.15rem .5rem;border-radius:4px;font-size:.68rem;font-family:var(--font-m);font-weight:600;color:#fff}
+
+/* ── Calendar ── */
+.cal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem}
+.cal-nav{display:flex;align-items:center;gap:.5rem}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+.cal-day-name{font-size:.7rem;font-weight:600;color:var(--soft);text-align:center;padding:.4rem;text-transform:uppercase;letter-spacing:.05em;font-family:var(--font-m)}
+.cal-cell{
+  min-height:90px;background:var(--white);border-radius:8px;
+  border:1px solid var(--border);padding:.4rem;
+  cursor:pointer;transition:all .2s;
+}
+.cal-cell:hover{border-color:var(--teal);box-shadow:0 2px 8px rgba(13,115,119,.1)}
+.cal-cell.today{border-color:var(--teal);border-width:2px}
+.cal-cell.other-month{background:var(--cream);opacity:.5}
+.cal-date{font-size:.75rem;font-weight:600;color:var(--mid);margin-bottom:.3rem;font-family:var(--font-m)}
+.cal-cell.today .cal-date{
+  background:var(--teal);color:#fff;
+  width:20px;height:20px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+}
+.cal-event{
+  font-size:.65rem;padding:.15rem .4rem;border-radius:4px;
+  margin-bottom:2px;color:#fff;font-weight:500;
+  overflow:hidden;white-space:nowrap;text-overflow:ellipsis;
+}
+
+/* ── Modal ── */
+.modal-backdrop{
+  position:fixed;inset:0;background:rgba(15,35,71,.5);
+  z-index:900;display:flex;align-items:center;justify-content:center;
+  backdrop-filter:blur(4px);animation:fadeIn .2s;
+  display:none;
+}
+.modal-backdrop.open{display:flex}
+.modal{
+  background:var(--white);border-radius:20px;
+  width:100%;max-width:580px;max-height:90vh;
+  overflow-y:auto;box-shadow:var(--sh-lg);
+  animation:slideUp .3s var(--ease);
+}
+@keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal__header{
+  padding:1.5rem 2rem;border-bottom:1px solid var(--border);
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;background:var(--white);z-index:1;
+}
+.modal__title{font-family:var(--font-d);font-size:1.25rem;font-weight:700;color:var(--navy)}
+.modal__close{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:var(--cream);color:var(--mid);font-size:1.1rem;transition:all .2s;cursor:pointer;border:none}
+.modal__close:hover{background:var(--red);color:#fff}
+.modal__body{padding:1.5rem 2rem 2rem}
+
+/* ── Toast ── */
+.toast-container{position:fixed;top:1rem;right:1rem;z-index:2000;display:flex;flex-direction:column;gap:.5rem}
+.toast{
+  padding:.85rem 1.25rem;border-radius:12px;font-size:.85rem;font-weight:500;
+  box-shadow:var(--sh-lg);color:#fff;
+  animation:toastIn .3s var(--ease);
+  min-width:280px;display:flex;align-items:center;gap:.65rem;
+}
+.toast.success{background:var(--green)}
+.toast.error{background:var(--red)}
+.toast.info{background:var(--teal)}
+@keyframes toastIn{from{transform:translateX(100%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes toastOut{to{transform:translateX(110%);opacity:0}}
+
+/* ── Trainer cards ── */
+.trainer-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:1rem}
+.trainer-card{
+  background:var(--white);border-radius:16px;overflow:hidden;
+  border:1px solid var(--border);box-shadow:var(--sh-sm);
+  transition:transform .3s var(--ease),box-shadow .3s;
+}
+.trainer-card:hover{transform:translateY(-4px);box-shadow:var(--sh-md)}
+.trainer-card__top{
+  padding:1.5rem;text-align:center;
+  background:linear-gradient(135deg,var(--navy-d),var(--navy));
+}
+.trainer-avatar{
+  width:70px;height:70px;border-radius:50%;
+  background:var(--teal);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-d);font-size:1.75rem;font-weight:900;color:#fff;
+  margin:0 auto .75rem;border:3px solid rgba(255,255,255,.15);
+}
+.trainer-card__name{font-family:var(--font-d);font-size:1.05rem;font-weight:700;color:#fff;margin-bottom:.25rem}
+.trainer-card__role{font-size:.75rem;color:rgba(255,255,255,.5);font-family:var(--font-m)}
+.trainer-card__body{padding:1.25rem}
+.trainer-card__rating{display:flex;align-items:center;gap:.4rem;font-size:.82rem;margin-bottom:.75rem}
+.stars{color:var(--gold);letter-spacing:2px}
+.trainer-card__bio{font-size:.83rem;color:var(--mid);line-height:1.6;margin-bottom:.75rem}
+.trainer-card__specs{display:flex;flex-wrap:wrap;gap:.3rem;margin-bottom:1rem}
+.spec-tag{padding:.2rem .55rem;background:rgba(13,115,119,.08);color:var(--teal);border-radius:50px;font-size:.7rem;font-weight:500;font-family:var(--font-m)}
+.trainer-card__stats{display:flex;gap:1rem;border-top:1px solid var(--border);padding-top:.75rem}
+.trainer-stat{text-align:center}
+.trainer-stat .n{font-family:var(--font-d);font-size:1.1rem;font-weight:700;color:var(--navy)}
+.trainer-stat .l{font-size:.68rem;color:var(--soft);font-family:var(--font-m)}
+
+/* ── Revenue chart donut (CSS) ── */
+.donut-wrap{display:flex;align-items:center;gap:2rem}
+.donut{width:120px;height:120px;flex-shrink:0;position:relative}
+.donut svg{transform:rotate(-90deg)}
+.donut-legend{flex:1;display:flex;flex-direction:column;gap:.6rem}
+.legend-item{display:flex;align-items:center;gap:.5rem;font-size:.8rem}
+.legend-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.legend-label{color:var(--mid);flex:1}
+.legend-val{font-weight:600;color:var(--navy);font-family:var(--font-m)}
+
+/* ── Tabs ── */
+.tabs{display:flex;gap:.25rem;background:var(--cream);padding:.25rem;border-radius:12px;margin-bottom:1.25rem}
+.tab{padding:.45rem 1rem;border-radius:8px;font-size:.82rem;font-weight:600;color:var(--mid);cursor:pointer;transition:all .2s}
+.tab.active{background:var(--white);color:var(--navy);box-shadow:var(--sh-sm)}
+
+/* ── Search / filter bar ── */
+.filter-bar{display:flex;align-items:center;gap:.75rem;margin-bottom:1.25rem;flex-wrap:wrap}
+.search-box{display:flex;align-items:center;gap:.5rem;background:var(--white);border:1.5px solid var(--border);border-radius:10px;padding:.5rem .85rem;flex:1;min-width:200px}
+.search-box input{border:none;outline:none;background:transparent;font-size:.88rem;width:100%}
+.search-box .icon{color:var(--soft);flex-shrink:0}
+
+/* ── Invoice detail ── */
+.inv-row{display:flex;justify-content:space-between;align-items:center;padding:.6rem 0;border-bottom:1px solid var(--border)}
+.inv-row:last-child{border-bottom:none;font-weight:700;font-size:1rem}
+.inv-row .k{color:var(--mid);font-size:.85rem}
+.inv-row .v{font-weight:600;color:var(--navy);font-family:var(--font-m)}
+.inv-row.total .v{color:var(--teal);font-size:1.05rem}
+
+/* ── Page header ── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem}
+.page-header h2{font-size:1.35rem;color:var(--navy)}
+.page-header p{font-size:.85rem;color:var(--soft);margin-top:.15rem}
+
+/* ── Empty state ── */
+.empty{text-align:center;padding:3rem 2rem;color:var(--soft)}
+.empty .icon{font-size:3rem;margin-bottom:1rem}
+.empty p{font-size:.9rem;margin-bottom:1.25rem}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:10px}
+::-webkit-scrollbar-thumb:hover{background:var(--soft)}
+
+/* ── Status dot ── */
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.35rem}
+.dot-green{background:var(--green)}
+.dot-gold{background:var(--gold)}
+.dot-red{background:var(--red)}
+.dot-blue{background:var(--navy)}
+.dot-gray{background:var(--soft)}
+
+/* ── Upcoming workshop list ── */
+.ws-item{display:flex;align-items:flex-start;gap:.85rem;padding:.9rem 0;border-bottom:1px solid var(--border)}
+.ws-item:last-child{border-bottom:none}
+.ws-item__date{flex-shrink:0;width:42px;text-align:center;background:var(--cream);border-radius:10px;padding:.35rem .25rem}
+.ws-item__date .day{font-family:var(--font-d);font-size:1.25rem;font-weight:900;color:var(--navy);line-height:1}
+.ws-item__date .mon{font-size:.6rem;font-family:var(--font-m);color:var(--soft);text-transform:uppercase;letter-spacing:.05em}
+.ws-item__info{flex:1;min-width:0}
+.ws-item__title{font-size:.88rem;font-weight:600;color:var(--navy);margin-bottom:.2rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ws-item__meta{font-size:.75rem;color:var(--soft);display:flex;gap:.75rem;flex-wrap:wrap}
+.ws-item__dot{width:8px;height:8px;border-radius:2px;flex-shrink:0;margin-top:6px}
+</style>
+</head>
+<body>
+
+<!-- ── LOGIN SCREEN ─────────────────────────────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-card__logo">
+      <div class="login-card__logo-mark">G</div>
+      <h2>GenBridge Admin</h2>
+      <p>Sign in to your management dashboard</p>
+    </div>
+    <div id="login-error" class="login-error"></div>
+    <div class="form-group">
+      <label>Email Address</label>
+      <input type="email" id="login-email" placeholder="admin@genbridge.lk" value="admin@genbridge.lk">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" value="Admin@2025">
+    </div>
+    <button class="btn btn--primary btn--full" onclick="doLogin()">Sign In →</button>
+    <p style="font-size:.72rem;color:var(--soft);text-align:center;margin-top:1rem;">
+      Demo: admin@genbridge.lk / Admin@2025
+    </p>
+  </div>
+</div>
+
+<!-- ── APP SHELL ────────────────────────────────────────── -->
+<div id="app" style="display:none">
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar__logo">
+      <div class="sidebar__logo-mark">G</div>
+      <div>
+        <div class="sidebar__logo-text">GenBridge</div>
+        <div class="sidebar__logo-sub">ADMIN PORTAL</div>
+      </div>
+    </div>
+    <nav class="sidebar__nav">
+      <div class="nav-section">Main</div>
+      <div class="nav-item active" data-view="dashboard" onclick="navigate('dashboard',this)">
+        <span class="nav-item__icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" data-view="calendar" onclick="navigate('calendar',this)">
+        <span class="nav-item__icon">📅</span> Calendar
+      </div>
+      <div class="nav-section">Training</div>
+      <div class="nav-item" data-view="workshops" onclick="navigate('workshops',this)">
+        <span class="nav-item__icon">🎓</span> Workshops
+      </div>
+      <div class="nav-item" data-view="trainers" onclick="navigate('trainers',this)">
+        <span class="nav-item__icon">👤</span> Trainers
+      </div>
+      <div class="nav-item" data-view="bookings" onclick="navigate('bookings',this)">
+        <span class="nav-item__icon">📋</span> Bookings
+      </div>
+      <div class="nav-section">Finance</div>
+      <div class="nav-item" data-view="invoices" onclick="navigate('invoices',this)">
+        <span class="nav-item__icon">🧾</span> Invoices
+        <span class="nav-item__badge" id="unpaid-badge"></span>
+      </div>
+      <div class="nav-item" data-view="revenue" onclick="navigate('revenue',this)">
+        <span class="nav-item__icon">💰</span> Revenue
+      </div>
+      <div class="nav-section">Settings</div>
+      <div class="nav-item" data-view="users" onclick="navigate('users',this)">
+        <span class="nav-item__icon">⚙️</span> Users
+      </div>
+    </nav>
+    <div class="sidebar__footer">
+      <div class="sidebar__user">
+        <div class="sidebar__avatar" id="user-avatar">A</div>
+        <div class="sidebar__user-info">
+          <div class="name" id="user-name">Admin</div>
+          <div class="role" id="user-role">admin</div>
+        </div>
+        <button class="sidebar__logout" onclick="doLogout()" title="Sign out">⇥</button>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main content -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar__left">
+        <div>
+          <div class="topbar__title" id="topbar-title">Dashboard</div>
+          <div class="topbar__breadcrumb" id="topbar-breadcrumb">Overview</div>
+        </div>
+      </div>
+      <div class="topbar__actions">
+        <button class="btn btn--outline btn--sm" onclick="navigate('calendar',document.querySelector('[data-view=calendar]'))">+ Schedule Workshop</button>
+        <button class="btn btn--teal btn--sm" onclick="openModal('booking-modal')">+ New Booking</button>
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- DASHBOARD -->
+      <div id="view-dashboard" class="view active">
+        <div class="kpi-grid" id="kpi-grid">
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(13,115,119,.1)">💰</div><div class="kpi-card__body"><div class="label">Total Revenue</div><div class="value" id="kpi-revenue">—</div><div class="sub" id="kpi-rev-sub"></div></div></div>
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(27,58,107,.1)">🎓</div><div class="kpi-card__body"><div class="label">Total Workshops</div><div class="value" id="kpi-workshops">—</div><div class="sub">All time</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(200,150,46,.1)">📋</div><div class="kpi-card__body"><div class="label">Confirmed Bookings</div><div class="value" id="kpi-bookings">—</div><div class="sub">Active</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(192,83,26,.1)">🧾</div><div class="kpi-card__body"><div class="label">Unpaid Invoices</div><div class="value" id="kpi-unpaid">—</div><div class="sub" id="kpi-unpaid-amt" style="color:var(--red)"></div></div></div>
+        </div>
+        <div class="dash-grid">
+          <div class="dash-col">
+            <div class="card">
+              <div class="card__header"><span class="card__title">Monthly Revenue</span><span style="font-size:.75rem;color:var(--soft);font-family:var(--font-m)">LKR</span></div>
+              <div class="card__body"><div class="bar-chart" id="revenue-chart"></div></div>
+            </div>
+            <div class="card">
+              <div class="card__header"><span class="card__title">Recent Bookings</span><button class="btn btn--outline btn--sm" onclick="navigate('bookings',document.querySelector('[data-view=bookings]'))">View all</button></div>
+              <div class="card__body" style="padding:0">
+                <div class="table-wrap">
+                  <table id="recent-bookings-table">
+                    <thead><tr><th>Client</th><th>Programme</th><th>Pax</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="dash-col">
+            <div class="card">
+              <div class="card__header"><span class="card__title">Upcoming Workshops</span></div>
+              <div class="card__body" id="upcoming-workshops"></div>
+            </div>
+            <div class="card">
+              <div class="card__header"><span class="card__title">Recent Invoices</span></div>
+              <div class="card__body" style="padding:0">
+                <div class="table-wrap">
+                  <table id="recent-invoices-table">
+                    <thead><tr><th>Invoice</th><th>Client</th><th>Amount</th><th>Status</th></tr></thead>
+                    <tbody></tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CALENDAR -->
+      <div id="view-calendar" class="view">
+        <div class="page-header">
+          <div><h2>Workshop Calendar</h2><p>Schedule and manage training sessions</p></div>
+          <button class="btn btn--primary" onclick="openWorkshopModal()">+ Schedule Workshop</button>
+        </div>
+        <div class="card">
+          <div class="card__body">
+            <div class="cal-header">
+              <button class="btn btn--outline btn--sm btn--icon" onclick="calNav(-1)">‹</button>
+              <h3 id="cal-month-label" style="font-size:1.1rem"></h3>
+              <button class="btn btn--outline btn--sm btn--icon" onclick="calNav(1)">›</button>
+            </div>
+            <div class="cal-grid" id="cal-grid">
+              <div class="cal-day-name">Sun</div><div class="cal-day-name">Mon</div>
+              <div class="cal-day-name">Tue</div><div class="cal-day-name">Wed</div>
+              <div class="cal-day-name">Thu</div><div class="cal-day-name">Fri</div>
+              <div class="cal-day-name">Sat</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- WORKSHOPS -->
+      <div id="view-workshops" class="view">
+        <div class="page-header">
+          <div><h2>Workshops</h2><p>All scheduled training sessions</p></div>
+          <button class="btn btn--primary" onclick="openWorkshopModal()">+ New Workshop</button>
+        </div>
+        <div class="filter-bar">
+          <div class="search-box"><span class="icon">🔍</span><input type="text" id="ws-search" placeholder="Search workshops..." oninput="filterWorkshops()"></div>
+          <select class="btn btn--outline btn--sm" style="border-radius:10px;padding:.5rem .85rem" id="ws-status-filter" onchange="filterWorkshops()">
+            <option value="">All Status</option><option value="scheduled">Scheduled</option>
+            <option value="confirmed">Confirmed</option><option value="completed">Completed</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <div class="card">
+          <div class="card__body" style="padding:0">
+            <div class="table-wrap">
+              <table id="workshops-table">
+                <thead><tr><th>Workshop</th><th>Programme</th><th>Date</th><th>Trainer</th><th>Venue</th><th>Booked</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRAINERS -->
+      <div id="view-trainers" class="view">
+        <div class="page-header">
+          <div><h2>Trainer Profiles</h2><p>Manage your training team</p></div>
+          <button class="btn btn--primary" onclick="openTrainerModal()">+ Add Trainer</button>
+        </div>
+        <div class="trainer-grid" id="trainers-grid"></div>
+      </div>
+
+      <!-- BOOKINGS -->
+      <div id="view-bookings" class="view">
+        <div class="page-header">
+          <div><h2>Bookings</h2><p>All client workshop bookings</p></div>
+          <button class="btn btn--primary" onclick="openModal('booking-modal')">+ New Booking</button>
+        </div>
+        <div class="card">
+          <div class="card__body" style="padding:0">
+            <div class="table-wrap">
+              <table id="bookings-table">
+                <thead><tr><th>Client</th><th>Company</th><th>Workshop</th><th>Pax</th><th>Amount</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVOICES -->
+      <div id="view-invoices" class="view">
+        <div class="page-header">
+          <div><h2>Invoices</h2><p>Billing and payment tracking</p></div>
+        </div>
+        <div class="tabs">
+          <div class="tab active" onclick="filterInvoices('',this)">All</div>
+          <div class="tab" onclick="filterInvoices('unpaid',this)">Unpaid</div>
+          <div class="tab" onclick="filterInvoices('paid',this)">Paid</div>
+          <div class="tab" onclick="filterInvoices('overdue',this)">Overdue</div>
+        </div>
+        <div class="card">
+          <div class="card__body" style="padding:0">
+            <div class="table-wrap">
+              <table id="invoices-table">
+                <thead><tr><th>Invoice #</th><th>Client</th><th>Programme</th><th>Amount</th><th>Issued</th><th>Due</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- REVENUE -->
+      <div id="view-revenue" class="view">
+        <div class="page-header"><div><h2>Revenue Analytics</h2><p>Financial performance overview</p></div></div>
+        <div class="kpi-grid" style="grid-template-columns:repeat(3,1fr)">
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(13,115,119,.1)">💰</div><div class="kpi-card__body"><div class="label">Total Revenue</div><div class="value" id="rev-total">—</div><div class="sub">All time</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(200,150,46,.1)">📅</div><div class="kpi-card__body"><div class="label">This Month</div><div class="value" id="rev-month">—</div><div class="sub">Current month</div></div></div>
+          <div class="kpi-card"><div class="kpi-icon" style="background:rgba(27,107,58,.1)">✅</div><div class="kpi-card__body"><div class="label">Paid Invoices</div><div class="value" id="rev-paid-count">—</div><div class="sub" id="rev-paid-amt"></div></div></div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.25rem;margin-top:1.25rem">
+          <div class="card">
+            <div class="card__header"><span class="card__title">Monthly Trend</span></div>
+            <div class="card__body"><div class="bar-chart" id="rev-monthly-chart"></div></div>
+          </div>
+          <div class="card">
+            <div class="card__header"><span class="card__title">Revenue by Programme</span></div>
+            <div class="card__body"><div class="bar-chart" id="rev-prog-chart"></div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- USERS -->
+      <div id="view-users" class="view">
+        <div class="page-header">
+          <div><h2>User Management</h2><p>Admin, trainer and HR manager accounts</p></div>
+          <button class="btn btn--primary" onclick="openUserModal()">+ Add User</button>
+        </div>
+        <div class="card">
+          <div class="card__body" style="padding:0">
+            <div class="table-wrap">
+              <table id="users-table">
+                <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── Toast container ── -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ── MODALS ────────────────────────────────────────────── -->
+<!-- Workshop Modal -->
+<div class="modal-backdrop" id="workshop-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">Schedule Workshop</span>
+      <button class="modal__close" onclick="closeModal('workshop-modal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-group">
+        <label>Programme *</label>
+        <select id="wm-programme" onchange="updateWmTitle()"></select>
+      </div>
+      <div class="form-group">
+        <label>Workshop Title *</label>
+        <input type="text" id="wm-title" placeholder="e.g. GB-01 Cohort — Dialog Axiata">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Start Date & Time *</label>
+          <input type="datetime-local" id="wm-start">
+        </div>
+        <div class="form-group">
+          <label>End Date & Time *</label>
+          <input type="datetime-local" id="wm-end">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Trainer</label>
+          <select id="wm-trainer"><option value="">— Select Trainer —</option></select>
+        </div>
+        <div class="form-group">
+          <label>Max Capacity</label>
+          <input type="number" id="wm-capacity" value="20" min="1" max="100">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Venue</label>
+        <input type="text" id="wm-venue" placeholder="e.g. Hilton Colombo, Client Premises">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="wm-notes" placeholder="Any special requirements or notes..."></textarea>
+      </div>
+      <button class="btn btn--primary btn--full" onclick="submitWorkshop()">Schedule Workshop</button>
+    </div>
+  </div>
+</div>
+
+<!-- Booking Modal -->
+<div class="modal-backdrop" id="booking-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">New Booking</span>
+      <button class="modal__close" onclick="closeModal('booking-modal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-group">
+        <label>Workshop *</label>
+        <select id="bm-workshop"></select>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Client Name *</label>
+          <input type="text" id="bm-name" placeholder="Contact person name">
+        </div>
+        <div class="form-group">
+          <label>Email *</label>
+          <input type="email" id="bm-email" placeholder="email@company.lk">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Company</label>
+          <input type="text" id="bm-company" placeholder="Company name">
+        </div>
+        <div class="form-group">
+          <label>Phone</label>
+          <input type="tel" id="bm-phone" placeholder="+94 77 123 4567">
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Number of Participants (Pax) *</label>
+        <input type="number" id="bm-pax" value="10" min="1">
+      </div>
+      <div class="form-group">
+        <label>Notes</label>
+        <textarea id="bm-notes" placeholder="Special requirements..."></textarea>
+      </div>
+      <div id="bm-total-preview" style="background:rgba(13,115,119,.08);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;font-size:.9rem;color:var(--teal);font-weight:600;display:none"></div>
+      <button class="btn btn--teal btn--full" onclick="submitBooking()">Confirm Booking & Generate Invoice</button>
+    </div>
+  </div>
+</div>
+
+<!-- Trainer Modal -->
+<div class="modal-backdrop" id="trainer-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">Add Trainer Profile</span>
+      <button class="modal__close" onclick="closeModal('trainer-modal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-group">
+        <label>User Account *</label>
+        <select id="tm-user"></select>
+      </div>
+      <div class="form-group">
+        <label>Bio</label>
+        <textarea id="tm-bio" placeholder="Professional background and expertise..."></textarea>
+      </div>
+      <div class="form-group">
+        <label>Specialisations (comma-separated)</label>
+        <input type="text" id="tm-specs" placeholder="Gen Z Integration, Leadership, Change Management">
+      </div>
+      <div class="form-group">
+        <label>Qualifications</label>
+        <input type="text" id="tm-quals" placeholder="MBA, CIPD Level 7, ...">
+      </div>
+      <div class="form-group">
+        <label>LinkedIn URL</label>
+        <input type="url" id="tm-linkedin" placeholder="https://linkedin.com/in/...">
+      </div>
+      <button class="btn btn--primary btn--full" onclick="submitTrainer()">Create Trainer Profile</button>
+    </div>
+  </div>
+</div>
+
+<!-- User Modal -->
+<div class="modal-backdrop" id="user-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title">Add User</span>
+      <button class="modal__close" onclick="closeModal('user-modal')">✕</button>
+    </div>
+    <div class="modal__body">
+      <div class="form-row">
+        <div class="form-group"><label>Full Name *</label><input type="text" id="um-name" placeholder="Priya Senanayake"></div>
+        <div class="form-group"><label>Role *</label>
+          <select id="um-role"><option value="hr_manager">HR Manager</option><option value="trainer">Trainer</option><option value="admin">Admin</option></select>
+        </div>
+      </div>
+      <div class="form-group"><label>Email *</label><input type="email" id="um-email" placeholder="user@genbridge.lk"></div>
+      <div class="form-group"><label>Password *</label><input type="password" id="um-password" placeholder="Minimum 8 characters"></div>
+      <button class="btn btn--primary btn--full" onclick="submitUser()">Create User</button>
+    </div>
+  </div>
+</div>
+
+<!-- Invoice detail modal -->
+<div class="modal-backdrop" id="invoice-modal">
+  <div class="modal">
+    <div class="modal__header">
+      <span class="modal__title" id="inv-modal-num">Invoice</span>
+      <button class="modal__close" onclick="closeModal('invoice-modal')">✕</button>
+    </div>
+    <div class="modal__body" id="inv-modal-body"></div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════════════
+// CONFIG
+// ══════════════════════════════════════════════════════════
+const API = (window.API_URL || 'http://localhost:5000') + '/api';
+let TOKEN = localStorage.getItem('gb_token');
+let CURRENT_USER = null;
+let ALL_WORKSHOPS = [];
+let ALL_INVOICES  = [];
+let ALL_BOOKINGS  = [];
+let ALL_USERS     = [];
+let PROGRAMMES    = [];
+let TRAINERS      = [];
+let CAL_DATE      = new Date();
+
+// ── HTTP helpers ──────────────────────────────────────────
+async function api(method, path, body = null) {
+  const opts = {
+    method,
+    headers: { 'Content-Type': 'application/json' },
+  };
+  if (TOKEN) opts.headers['Authorization'] = 'Bearer ' + TOKEN;
+  if (body)  opts.body = JSON.stringify(body);
+  const res = await fetch(API + path, opts);
+  if (res.status === 401) { doLogout(); return null; }
+  const ct = res.headers.get('content-type') || '';
+  if (ct.includes('application/pdf')) return res;
+  return res.json();
+}
+
+// ── Toast ─────────────────────────────────────────────────
+function toast(msg, type = 'success') {
+  const c = document.getElementById('toast-container');
+  const t = document.createElement('div');
+  t.className = `toast ${type}`;
+  t.innerHTML = (type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️') + ' ' + msg;
+  c.appendChild(t);
+  setTimeout(() => { t.style.animation = 'toastOut .3s forwards'; setTimeout(() => t.remove(), 300); }, 3000);
+}
+
+// ── Modal helpers ─────────────────────────────────────────
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.addEventListener('click', e => {
+  if (e.target.classList.contains('modal-backdrop')) e.target.classList.remove('open');
+});
+
+// ── Navigation ────────────────────────────────────────────
+const VIEW_TITLES = {
+  dashboard: ['Dashboard', 'Overview'],
+  calendar:  ['Calendar', 'Workshop scheduling'],
+  workshops: ['Workshops', 'All sessions'],
+  trainers:  ['Trainer Profiles', 'Training team'],
+  bookings:  ['Bookings', 'Client registrations'],
+  invoices:  ['Invoices', 'Billing & payments'],
+  revenue:   ['Revenue Analytics', 'Financial overview'],
+  users:     ['User Management', 'Accounts & access'],
+};
+
+function navigate(view, el) {
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('view-' + view)?.classList.add('active');
+  el?.classList.add('active');
+  const [title, sub] = VIEW_TITLES[view] || [view, ''];
+  document.getElementById('topbar-title').textContent = title;
+  document.getElementById('topbar-breadcrumb').textContent = sub;
+  loadView(view);
+}
+
+async function loadView(view) {
+  if (view === 'dashboard')  await loadDashboard();
+  if (view === 'calendar')   await loadCalendar();
+  if (view === 'workshops')  await loadWorkshops();
+  if (view === 'trainers')   await loadTrainers();
+  if (view === 'bookings')   await loadBookings();
+  if (view === 'invoices')   await loadInvoices();
+  if (view === 'revenue')    await loadRevenue();
+  if (view === 'users')      await loadUsers();
+}
+
+// ══════════════════════════════════════════════════════════
+// AUTH
+// ══════════════════════════════════════════════════════════
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim();
+  const pass  = document.getElementById('login-password').value;
+  const errEl = document.getElementById('login-error');
+  errEl.style.display = 'none';
+  try {
+    const res = await fetch(API + '/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password: pass }),
+    });
+    const data = await res.json();
+    if (!res.ok) { errEl.textContent = data.error || 'Login failed'; errEl.style.display = 'block'; return; }
+    TOKEN = data.token;
+    CURRENT_USER = data.user;
+    localStorage.setItem('gb_token', TOKEN);
+    showApp();
+  } catch (e) {
+    errEl.textContent = 'Cannot connect to API server. Start the backend first.';
+    errEl.style.display = 'block';
+  }
+}
+
+document.getElementById('login-password').addEventListener('keydown', e => { if (e.key === 'Enter') doLogin(); });
+
+function doLogout() {
+  TOKEN = null; CURRENT_USER = null;
+  localStorage.removeItem('gb_token');
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('login-screen').style.display = 'flex';
+}
+
+async function checkSession() {
+  if (!TOKEN) return;
+  try {
+    const data = await api('GET', '/auth/me');
+    if (data && data.id) { CURRENT_USER = data; showApp(); }
+    else doLogout();
+  } catch { doLogout(); }
+}
+
+function showApp() {
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  document.getElementById('user-name').textContent = CURRENT_USER.name;
+  document.getElementById('user-role').textContent = CURRENT_USER.role.replace('_', ' ');
+  document.getElementById('user-avatar').textContent = CURRENT_USER.name[0].toUpperCase();
+  loadDashboard();
+  loadStaticData();
+}
+
+async function loadStaticData() {
+  PROGRAMMES = await api('GET', '/programmes') || [];
+  TRAINERS   = await api('GET', '/trainers')   || [];
+  populateSelects();
+}
+
+// ══════════════════════════════════════════════════════════
+// DASHBOARD
+// ══════════════════════════════════════════════════════════
+async function loadDashboard() {
+  const [dash, rev] = await Promise.all([
+    api('GET', '/dashboard'),
+    api('GET', '/revenue'),
+  ]);
+  if (!dash) return;
+
+  // KPIs
+  const fmt = n => 'LKR ' + Number(n).toLocaleString();
+  document.getElementById('kpi-revenue').textContent   = fmt(dash.kpis.total_revenue);
+  document.getElementById('kpi-workshops').textContent  = dash.kpis.total_workshops;
+  document.getElementById('kpi-bookings').textContent   = dash.kpis.total_bookings;
+  document.getElementById('kpi-unpaid').textContent     = dash.kpis.unpaid_invoices;
+  document.getElementById('kpi-unpaid-amt').textContent = dash.kpis.unpaid_amount ? fmt(dash.kpis.unpaid_amount) + ' outstanding' : '';
+
+  const badge = document.getElementById('unpaid-badge');
+  if (dash.kpis.unpaid_invoices > 0) { badge.textContent = dash.kpis.unpaid_invoices; badge.style.display = ''; }
+  else badge.style.display = 'none';
+
+  // Monthly bar chart
+  if (rev?.monthly) renderBarChart('revenue-chart', rev.monthly, 'month', 'total', '#0D7377');
+
+  // Upcoming workshops
+  const upEl = document.getElementById('upcoming-workshops');
+  if (dash.upcoming_workshops?.length) {
+    upEl.innerHTML = dash.upcoming_workshops.map(w => {
+      const d = new Date(w.start_datetime);
+      return `<div class="ws-item">
+        <div class="ws-item__date"><div class="day">${d.getDate()}</div><div class="mon">${d.toLocaleString('en',{month:'short'})}</div></div>
+        <div style="width:4px;border-radius:4px;align-self:stretch;background:${w.accent_color||'#0D7377'};flex-shrink:0"></div>
+        <div class="ws-item__info">
+          <div class="ws-item__title">${w.title}</div>
+          <div class="ws-item__meta"><span>📍 ${w.venue||'TBC'}</span><span>👤 ${w.trainer_name||'Unassigned'}</span></div>
+        </div>
+        <span class="badge ${statusBadge(w.status)}">${w.status}</span>
+      </div>`;
+    }).join('');
+  } else upEl.innerHTML = '<div class="empty"><div class="icon">📅</div><p>No upcoming workshops</p></div>';
+
+  // Recent bookings table
+  const bt = document.querySelector('#recent-bookings-table tbody');
+  bt.innerHTML = (dash.recent_bookings || []).map(b => `<tr>
+    <td><strong>${b.client_name}</strong></td>
+    <td><span class="prog-tag" style="background:${progColor(b.code)}">${b.code||'—'}</span></td>
+    <td>${b.pax_count}</td>
+    <td style="font-family:var(--font-m);font-size:.8rem">LKR ${Number(b.total_amount).toLocaleString()}</td>
+    <td><span class="badge ${statusBadge(b.status)}">${b.status}</span></td>
+  </tr>`).join('');
+
+  // Recent invoices
+  const it = document.querySelector('#recent-invoices-table tbody');
+  it.innerHTML = (dash.recent_invoices || []).map(i => `<tr>
+    <td style="font-family:var(--font-m);font-size:.8rem"><strong>${i.invoice_number}</strong></td>
+    <td>${i.client_name}<br><span style="font-size:.72rem;color:var(--soft)">${i.client_company||''}</span></td>
+    <td style="font-family:var(--font-m);font-size:.8rem">LKR ${Number(i.total_amount).toLocaleString()}</td>
+    <td><span class="badge ${invBadge(i.status)}">${i.status}</span></td>
+  </tr>`).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// CALENDAR
+// ══════════════════════════════════════════════════════════
+async function loadCalendar() {
+  const month = `${CAL_DATE.getFullYear()}-${String(CAL_DATE.getMonth()+1).padStart(2,'0')}`;
+  document.getElementById('cal-month-label').textContent =
+    CAL_DATE.toLocaleString('en', {month:'long', year:'numeric'});
+
+  const data = await api('GET', `/workshops/calendar?month=${month}`) || {};
+  renderCal(data);
+}
+
+function renderCal(events) {
+  const grid = document.getElementById('cal-grid');
+  // Remove old cells (keep day headers)
+  while (grid.children.length > 7) grid.removeChild(grid.lastChild);
+
+  const year  = CAL_DATE.getFullYear();
+  const month = CAL_DATE.getMonth();
+  const first = new Date(year, month, 1);
+  const last  = new Date(year, month+1, 0);
+  const today = new Date();
+
+  // Blank cells before first day
+  for (let i = 0; i < first.getDay(); i++) {
+    const d = document.createElement('div');
+    d.className = 'cal-cell other-month';
+    grid.appendChild(d);
+  }
+
+  for (let day = 1; day <= last.getDate(); day++) {
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(day).padStart(2,'0')}`;
+    const cell = document.createElement('div');
+    cell.className = 'cal-cell';
+    const isToday = today.getDate()===day && today.getMonth()===month && today.getFullYear()===year;
+    if (isToday) cell.classList.add('today');
+
+    const dateEl = document.createElement('div');
+    dateEl.className = 'cal-date';
+    dateEl.textContent = day;
+    cell.appendChild(dateEl);
+
+    const dayEvents = events[dateStr] || [];
+    dayEvents.slice(0,3).forEach(ev => {
+      const e = document.createElement('div');
+      e.className = 'cal-event';
+      e.style.background = ev.accent_color || '#0D7377';
+      e.title = ev.title;
+      e.textContent = ev.code + ' ' + ev.title.substring(0,20);
+      cell.appendChild(e);
+    });
+    if (dayEvents.length > 3) {
+      const more = document.createElement('div');
+      more.style.cssText = 'font-size:.62rem;color:var(--soft);padding:.1rem .25rem';
+      more.textContent = `+${dayEvents.length-3} more`;
+      cell.appendChild(more);
+    }
+    grid.appendChild(cell);
+  }
+}
+
+function calNav(dir) { CAL_DATE.setMonth(CAL_DATE.getMonth()+dir); loadCalendar(); }
+
+// ══════════════════════════════════════════════════════════
+// WORKSHOPS
+// ══════════════════════════════════════════════════════════
+async function loadWorkshops() {
+  ALL_WORKSHOPS = await api('GET', '/workshops') || [];
+  renderWorkshops(ALL_WORKSHOPS);
+}
+
+function renderWorkshops(list) {
+  const tb = document.querySelector('#workshops-table tbody');
+  if (!list.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--soft);padding:2rem">No workshops found</td></tr>'; return; }
+  tb.innerHTML = list.map(w => `<tr>
+    <td><strong style="font-size:.88rem">${w.title}</strong></td>
+    <td><span class="prog-tag" style="background:${w.accent_color||'#1B3A6B'}">${w.programme_code||'—'}</span></td>
+    <td style="font-size:.82rem;font-family:var(--font-m)">${fmtDate(w.start_datetime)}</td>
+    <td style="font-size:.82rem">${w.trainer_name||'—'}</td>
+    <td style="font-size:.8rem;max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${w.venue||'—'}</td>
+    <td style="font-size:.82rem">${w.booked_pax||0}/${w.max_capacity}</td>
+    <td><span class="badge ${statusBadge(w.status)}">${w.status}</span></td>
+    <td>
+      <div style="display:flex;gap:.35rem">
+        <button class="btn btn--outline btn--sm btn--icon" onclick="editWorkshop(${w.id})" title="Edit">✏️</button>
+        <button class="btn btn--danger btn--sm btn--icon" onclick="cancelWorkshop(${w.id})" title="Cancel">🗑</button>
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+function filterWorkshops() {
+  const q = document.getElementById('ws-search').value.toLowerCase();
+  const s = document.getElementById('ws-status-filter').value;
+  renderWorkshops(ALL_WORKSHOPS.filter(w =>
+    (!q || w.title.toLowerCase().includes(q) || (w.trainer_name||'').toLowerCase().includes(q)) &&
+    (!s || w.status === s)
+  ));
+}
+
+async function cancelWorkshop(id) {
+  if (!confirm('Cancel this workshop?')) return;
+  await api('DELETE', `/workshops/${id}`);
+  toast('Workshop cancelled'); loadWorkshops();
+}
+
+// ══════════════════════════════════════════════════════════
+// TRAINERS
+// ══════════════════════════════════════════════════════════
+async function loadTrainers() {
+  TRAINERS = await api('GET', '/trainers') || [];
+  const grid = document.getElementById('trainers-grid');
+  if (!TRAINERS.length) { grid.innerHTML = '<div class="empty"><div class="icon">👤</div><p>No trainer profiles yet</p><button class="btn btn--primary" onclick="openTrainerModal()">+ Add Trainer</button></div>'; return; }
+  grid.innerHTML = TRAINERS.map(t => {
+    const specs = Array.isArray(t.specialisations) ? t.specialisations : [];
+    const stars = '★'.repeat(Math.round(t.rating||5)) + '☆'.repeat(5-Math.round(t.rating||5));
+    return `<div class="trainer-card">
+      <div class="trainer-card__top">
+        <div class="trainer-avatar">${(t.name||'T')[0]}</div>
+        <div class="trainer-card__name">${t.name||'Trainer'}</div>
+        <div class="trainer-card__role">${t.email||''}</div>
+      </div>
+      <div class="trainer-card__body">
+        <div class="trainer-card__rating"><span class="stars">${stars}</span> <strong>${(t.rating||5).toFixed(1)}</strong></div>
+        <p class="trainer-card__bio">${t.bio||'No bio available.'}</p>
+        <div class="trainer-card__specs">${specs.map(s=>`<span class="spec-tag">${s}</span>`).join('')}</div>
+        <div class="trainer-card__stats">
+          <div class="trainer-stat"><div class="n">${t.sessions_count||0}</div><div class="l">Sessions</div></div>
+          <div class="trainer-stat"><div class="n" style="color:${t.is_available?'var(--green)':'var(--red)'}">●</div><div class="l">${t.is_available?'Available':'Busy'}</div></div>
+          ${t.qualifications?`<div class="trainer-stat"><div class="n" style="font-size:.65rem;color:var(--mid)">${t.qualifications.substring(0,20)}…</div><div class="l">Quals</div></div>`:''}
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════════════════════════
+// BOOKINGS
+// ══════════════════════════════════════════════════════════
+async function loadBookings() {
+  ALL_BOOKINGS = await api('GET', '/bookings') || [];
+  const tb = document.querySelector('#bookings-table tbody');
+  if (!ALL_BOOKINGS.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--soft);padding:2rem">No bookings yet</td></tr>'; return; }
+  tb.innerHTML = ALL_BOOKINGS.map(b => `<tr>
+    <td><strong>${b.client_name}</strong><br><span style="font-size:.72rem;color:var(--soft)">${b.client_email}</span></td>
+    <td style="font-size:.82rem">${b.client_company||'—'}</td>
+    <td style="font-size:.82rem;max-width:160px"><strong>${b.workshop_title||'—'}</strong><br><span class="prog-tag" style="background:${progColor(b.code)};font-size:.62rem">${b.code||''}</span></td>
+    <td>${b.pax_count}</td>
+    <td style="font-family:var(--font-m);font-size:.8rem">LKR ${Number(b.total_amount||0).toLocaleString()}</td>
+    <td><span class="badge ${statusBadge(b.status)}">${b.status}</span></td>
+    <td style="font-size:.75rem;color:var(--soft);font-family:var(--font-m)">${fmtDate(b.created_at)}</td>
+    <td>
+      <select class="btn btn--outline btn--sm" style="border-radius:8px" onchange="updateBookingStatus(${b.id},this.value)">
+        <option>Update…</option>
+        <option value="confirmed">Confirm</option>
+        <option value="cancelled">Cancel</option>
+      </select>
+    </td>
+  </tr>`).join('');
+}
+
+async function updateBookingStatus(id, status) {
+  if (!status || status === 'Update…') return;
+  await api('PUT', `/bookings/${id}`, { status });
+  toast('Booking updated'); loadBookings();
+}
+
+// ══════════════════════════════════════════════════════════
+// INVOICES
+// ══════════════════════════════════════════════════════════
+async function loadInvoices(filter='') {
+  ALL_INVOICES = await api('GET', '/invoices') || [];
+  renderInvoices(ALL_INVOICES, filter);
+}
+
+function filterInvoices(status, el) {
+  document.querySelectorAll('.tabs .tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  renderInvoices(ALL_INVOICES, status);
+}
+
+function renderInvoices(list, filter='') {
+  const filtered = filter ? list.filter(i=>i.status===filter) : list;
+  const tb = document.querySelector('#invoices-table tbody');
+  if (!filtered.length) { tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--soft);padding:2rem">No invoices found</td></tr>'; return; }
+  tb.innerHTML = filtered.map(i => `<tr>
+    <td style="font-family:var(--font-m);font-size:.82rem"><strong>${i.invoice_number}</strong></td>
+    <td><strong style="font-size:.85rem">${i.client_name||'—'}</strong><br><span style="font-size:.72rem;color:var(--soft)">${i.client_company||''}</span></td>
+    <td><span class="prog-tag" style="background:${progColor(i.code)};font-size:.68rem">${i.code||'—'}</span></td>
+    <td style="font-family:var(--font-m);font-size:.82rem">LKR ${Number(i.total_amount||0).toLocaleString()}</td>
+    <td style="font-size:.78rem;font-family:var(--font-m)">${(i.issued_date||'').substring(0,10)}</td>
+    <td style="font-size:.78rem;font-family:var(--font-m)">${(i.due_date||'').substring(0,10)||'On receipt'}</td>
+    <td><span class="badge ${invBadge(i.status)}">${i.status}</span></td>
+    <td>
+      <div style="display:flex;gap:.35rem;flex-wrap:wrap">
+        <button class="btn btn--outline btn--sm" onclick="viewInvoice(${i.id})" title="View">👁</button>
+        <button class="btn btn--teal btn--sm" onclick="downloadInvoice(${i.id},'${i.invoice_number}')" title="PDF">⬇ PDF</button>
+        ${i.status!=='paid'?`<button class="btn btn--gold btn--sm" onclick="markPaid(${i.id})" title="Mark paid">✓ Paid</button>`:''}
+      </div>
+    </td>
+  </tr>`).join('');
+}
+
+async function viewInvoice(id) {
+  const data = await api('GET', `/invoices/${id}`);
+  if (!data) return;
+  const { invoice: inv, booking: b, workshop: w, programme: p } = data;
+  document.getElementById('inv-modal-num').textContent = inv.invoice_number;
+  document.getElementById('inv-modal-body').innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+      <div><div style="font-size:.72rem;color:var(--soft);margin-bottom:.3rem">BILL TO</div>
+        <strong>${b?.client_name||'—'}</strong><br>
+        <span style="font-size:.85rem;color:var(--mid)">${b?.client_company||''}</span><br>
+        <span style="font-size:.82rem;color:var(--soft)">${b?.client_email||''}</span>
+      </div>
+      <div><div style="font-size:.72rem;color:var(--soft);margin-bottom:.3rem">DETAILS</div>
+        <div style="font-size:.85rem;color:var(--mid)">
+          <div>Programme: <strong>${p?.name||'—'}</strong></div>
+          <div>Workshop: ${w?.title||'—'}</div>
+          <div>Date: ${fmtDate(w?.start_datetime)}</div>
+        </div>
+      </div>
+    </div>
+    <div class="inv-row"><span class="k">Participants</span><span class="v">${b?.pax_count||0} pax</span></div>
+    <div class="inv-row"><span class="k">Subtotal</span><span class="v">LKR ${Number(inv.subtotal||0).toLocaleString()}</span></div>
+    <div class="inv-row"><span class="k">VAT (0%)</span><span class="v">LKR 0</span></div>
+    <div class="inv-row total"><span class="k" style="font-weight:700">TOTAL DUE</span><span class="v">LKR ${Number(inv.total_amount||0).toLocaleString()}</span></div>
+    <div style="margin-top:1.25rem;display:flex;gap:.75rem;flex-wrap:wrap">
+      <span class="badge ${invBadge(inv.status)}">${inv.status}</span>
+      ${inv.paid_date?`<span style="font-size:.78rem;color:var(--soft)">Paid: ${inv.paid_date.substring(0,10)}</span>`:''}
+    </div>
+    <div style="display:flex;gap:.75rem;margin-top:1.5rem;flex-wrap:wrap">
+      <button class="btn btn--teal btn--full" onclick="downloadInvoice(${inv.id},'${inv.invoice_number}');closeModal('invoice-modal')">⬇ Download PDF</button>
+      ${inv.status!=='paid'?`<button class="btn btn--gold" onclick="markPaid(${inv.id});closeModal('invoice-modal')">✓ Mark as Paid</button>`:''}
+    </div>
+  `;
+  openModal('invoice-modal');
+}
+
+async function downloadInvoice(id, num) {
+  toast('Generating PDF…', 'info');
+  const res = await api('GET', `/invoices/${id}/pdf`);
+  if (!res || !res.ok) { toast('PDF generation failed','error'); return; }
+  const blob = await res.blob();
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url; a.download = `invoice-${num}.pdf`; a.click();
+  URL.revokeObjectURL(url);
+  toast('Invoice PDF downloaded');
+}
+
+async function markPaid(id) {
+  const today = new Date().toISOString().substring(0,10);
+  await api('PUT', `/invoices/${id}`, { status:'paid', paid_date: today });
+  toast('Invoice marked as paid'); loadInvoices(); loadDashboard();
+}
+
+// ══════════════════════════════════════════════════════════
+// REVENUE
+// ══════════════════════════════════════════════════════════
+async function loadRevenue() {
+  const data = await api('GET', '/revenue');
+  if (!data) return;
+
+  const paid  = data.invoice_status?.find(s=>s.status==='paid');
+  const unpaid = data.invoice_status?.find(s=>s.status==='unpaid');
+  const total = (data.monthly||[]).reduce((a,m)=>a+Number(m.total||0),0);
+  const now   = new Date(); const curMon = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const thisMon = data.monthly?.find(m=>m.month===curMon);
+
+  document.getElementById('rev-total').textContent      = 'LKR ' + total.toLocaleString();
+  document.getElementById('rev-month').textContent      = 'LKR ' + Number(thisMon?.total||0).toLocaleString();
+  document.getElementById('rev-paid-count').textContent = paid?.count||0;
+  document.getElementById('rev-paid-amt').textContent   = paid ? 'LKR '+Number(paid.amount).toLocaleString() : '';
+
+  renderBarChart('rev-monthly-chart', data.monthly||[], 'month', 'total', '#0D7377');
+  renderBarChart('rev-prog-chart', data.by_programme||[], 'code', 'total', '#C8962E');
+}
+
+// ══════════════════════════════════════════════════════════
+// USERS
+// ══════════════════════════════════════════════════════════
+async function loadUsers() {
+  ALL_USERS = await api('GET', '/users') || [];
+  const tb = document.querySelector('#users-table tbody');
+  tb.innerHTML = ALL_USERS.map(u => `<tr>
+    <td><div style="display:flex;align-items:center;gap:.6rem">
+      <div style="width:30px;height:30px;border-radius:50%;background:var(--navy);color:#fff;display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0">${u.name[0]}</div>
+      <strong style="font-size:.88rem">${u.name}</strong>
+    </div></td>
+    <td style="font-size:.82rem">${u.email}</td>
+    <td><span class="badge badge--blue">${u.role.replace('_',' ')}</span></td>
+    <td><span class="badge ${u.is_active?'badge--green':'badge--gray'}">${u.is_active?'Active':'Inactive'}</span></td>
+    <td style="font-size:.75rem;color:var(--soft);font-family:var(--font-m)">${(u.created_at||'').substring(0,10)}</td>
+    <td>
+      <button class="btn btn--danger btn--sm" onclick="toggleUser(${u.id},${u.is_active})">${u.is_active?'Deactivate':'Activate'}</button>
+    </td>
+  </tr>`).join('');
+}
+
+async function toggleUser(id, current) {
+  await api('PUT', `/users/${id}`, { is_active: current ? 0 : 1 });
+  toast('User updated'); loadUsers();
+}
+
+// ══════════════════════════════════════════════════════════
+// SUBMIT HANDLERS
+// ══════════════════════════════════════════════════════════
+function openWorkshopModal() { populateSelects(); openModal('workshop-modal'); }
+function openTrainerModal()  { populateUserSelect(); openModal('trainer-modal'); }
+
+async function submitWorkshop() {
+  const prog_id = document.getElementById('wm-programme').value;
+  const title   = document.getElementById('wm-title').value.trim();
+  const start   = document.getElementById('wm-start').value;
+  const end     = document.getElementById('wm-end').value;
+  if (!prog_id || !title || !start || !end) { toast('Fill all required fields','error'); return; }
+  const res = await api('POST', '/workshops', {
+    programme_id: prog_id,
+    trainer_id:   document.getElementById('wm-trainer').value || null,
+    title, start_datetime: start, end_datetime: end,
+    venue:        document.getElementById('wm-venue').value,
+    max_capacity: document.getElementById('wm-capacity').value,
+    notes:        document.getElementById('wm-notes').value,
+  });
+  if (res?.id) { toast('Workshop scheduled'); closeModal('workshop-modal'); loadWorkshops(); loadCalendar(); }
+  else toast(res?.error || 'Error creating workshop', 'error');
+}
+
+async function submitBooking() {
+  const ws  = document.getElementById('bm-workshop').value;
+  const nm  = document.getElementById('bm-name').value.trim();
+  const em  = document.getElementById('bm-email').value.trim();
+  const pax = document.getElementById('bm-pax').value;
+  if (!ws || !nm || !em || !pax) { toast('Fill all required fields','error'); return; }
+  const res = await api('POST', '/bookings', {
+    workshop_id: ws, client_name: nm, client_email: em,
+    client_company: document.getElementById('bm-company').value,
+    client_phone:   document.getElementById('bm-phone').value,
+    pax_count: pax,
+    notes:          document.getElementById('bm-notes').value,
+  });
+  if (res?.booking_id) {
+    toast(`Booking created! Invoice: ${res.invoice_number}`);
+    closeModal('booking-modal'); loadBookings(); loadInvoices();
+  } else toast(res?.error || 'Error creating booking','error');
+}
+
+async function submitTrainer() {
+  const uid   = document.getElementById('tm-user').value;
+  const specs = document.getElementById('tm-specs').value.split(',').map(s=>s.trim()).filter(Boolean);
+  if (!uid) { toast('Select a user','error'); return; }
+  const res = await api('POST', '/trainers', {
+    user_id: uid, bio: document.getElementById('tm-bio').value,
+    specialisations: specs,
+    qualifications:  document.getElementById('tm-quals').value,
+    linkedin_url:    document.getElementById('tm-linkedin').value,
+  });
+  if (res?.id) { toast('Trainer profile created'); closeModal('trainer-modal'); loadTrainers(); }
+  else toast(res?.error || 'Error','error');
+}
+
+async function submitUser() {
+  const nm = document.getElementById('um-name').value.trim();
+  const em = document.getElementById('um-email').value.trim();
+  const pw = document.getElementById('um-password').value;
+  const ro = document.getElementById('um-role').value;
+  if (!nm||!em||!pw) { toast('Fill all fields','error'); return; }
+  const res = await api('POST', '/users', { name:nm, email:em, password:pw, role:ro });
+  if (res?.id) { toast('User created'); closeModal('user-modal'); loadUsers(); }
+  else toast(res?.error || 'Error','error');
+}
+
+function openUserModal() { openModal('user-modal'); }
+
+// ══════════════════════════════════════════════════════════
+// POPULATE SELECTS
+// ══════════════════════════════════════════════════════════
+function populateSelects() {
+  // Programme select
+  const ps = document.getElementById('wm-programme');
+  ps.innerHTML = '<option value="">— Select Programme —</option>' +
+    PROGRAMMES.map(p=>`<option value="${p.id}">${p.code} — ${p.name}</option>`).join('');
+
+  // Trainer select
+  const ts = document.getElementById('wm-trainer');
+  ts.innerHTML = '<option value="">— Unassigned —</option>' +
+    TRAINERS.map(t=>`<option value="${t.id}">${t.name}</option>`).join('');
+
+  // Booking workshop select
+  const bs = document.getElementById('bm-workshop');
+  const upcoming = ALL_WORKSHOPS.filter(w=>w.status!=='cancelled'&&w.status!=='completed');
+  bs.innerHTML = '<option value="">— Select Workshop —</option>' +
+    upcoming.map(w=>`<option value="${w.id}">${w.title} (${fmtDate(w.start_datetime)})</option>`).join('');
+}
+
+async function populateUserSelect() {
+  const users = await api('GET','/users') || [];
+  const sel = document.getElementById('tm-user');
+  sel.innerHTML = '<option value="">— Select User —</option>' +
+    users.filter(u=>u.role==='trainer').map(u=>`<option value="${u.id}">${u.name}</option>`).join('');
+}
+
+function updateWmTitle() {
+  const sel = document.getElementById('wm-programme');
+  const opt = sel.options[sel.selectedIndex];
+  if (opt && opt.value) {
+    const current = document.getElementById('wm-title').value;
+    if (!current) document.getElementById('wm-title').value = opt.text.split(' — ')[0] + ' Cohort — ';
+  }
+}
+
+// ══════════════════════════════════════════════════════════
+// HELPERS
+// ══════════════════════════════════════════════════════════
+function fmtDate(dt) {
+  if (!dt) return '—';
+  const d = new Date(dt);
+  return d.toLocaleDateString('en-GB', {day:'2-digit',month:'short',year:'numeric'});
+}
+
+function statusBadge(s) {
+  return {scheduled:'badge--blue',confirmed:'badge--teal',completed:'badge--green',cancelled:'badge--red',pending:'badge--gold'}[s]||'badge--gray';
+}
+function invBadge(s) {
+  return {paid:'badge--green',unpaid:'badge--gold',overdue:'badge--red',cancelled:'badge--gray'}[s]||'badge--gray';
+}
+
+const PROG_COLORS = {'GB-01':'#0D7377','GB-02':'#1B6B3A','GB-03':'#C0531A','GB-04':'#5B2D8E','GB-05':'#1B3A6B','GB-06':'#C8962E'};
+function progColor(code) { return PROG_COLORS[code] || '#1B3A6B'; }
+
+function renderBarChart(containerId, data, labelKey, valueKey, color) {
+  const el = document.getElementById(containerId);
+  if (!el || !data.length) { el && (el.innerHTML = '<div class="empty"><p>No data yet</p></div>'); return; }
+  const max = Math.max(...data.map(d=>Number(d[valueKey]||0)));
+  el.innerHTML = data.map(d => {
+    const val = Number(d[valueKey]||0);
+    const pct = max > 0 ? (val/max*100).toFixed(1) : 0;
+    return `<div class="bar-row">
+      <div class="bar-label">${d[labelKey]||'—'}</div>
+      <div class="bar-track"><div class="bar-fill" style="width:${pct}%;background:${color}" data-target="${pct}"></div></div>
+      <div class="bar-val">LKR ${val>=1000?Math.round(val/1000)+'K':val.toLocaleString()}</div>
+    </div>`;
+  }).join('');
+  // Animate bars
+  requestAnimationFrame(() => {
+    el.querySelectorAll('.bar-fill').forEach(b => {
+      const t = b.dataset.target;
+      b.style.width = '0%';
+      setTimeout(() => b.style.width = t + '%', 50);
+    });
+  });
+}
+
+// ══════════════════════════════════════════════════════════
+// INIT
+// ══════════════════════════════════════════════════════════
+checkSession();
+</script>
+</body>
+</html>
